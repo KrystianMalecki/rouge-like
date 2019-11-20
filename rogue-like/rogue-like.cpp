@@ -21,10 +21,21 @@ BACKGROUND_INTENSITY
 #include <iomanip>
 #include <ctime>
 #include <vector>
-
+#include <sstream> 
 #include <algorithm>
 #include <time.h>
 using namespace std;
+struct  itemData
+{
+	int id;
+	char icon;
+
+	string name;
+	int value;
+	int Special_power;
+	int Special_type;
+	bool stackable;
+};
 //Structs
 struct  item
 {
@@ -43,6 +54,7 @@ struct  player
 	int coins;
 	vector <item> items;
 };
+vector <itemData> itemsData;
 int data_size = 5;
 player players[2];
 //int curr_pl;
@@ -62,12 +74,17 @@ ofstream stats_of;
 string const settings_path("player/settings.txt");
 fstream settings_f;
 ofstream settings_of;
+string const itemsData_path("data/items.txt");
+fstream itemsData_f;
+ofstream itemsData_of;
+
 int size_x = 20, size_y = 20;
 char Map[20][20];
 int start_x, start_y;
 char inputer;
 char player_input;
 char options_input;
+char inv_input;
 char inmovable[2] = { '#','~' };
 HANDLE static hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 //Options
@@ -265,7 +282,6 @@ void drawMap(int pl)
 		cout << endl;
 	}
 }
-
 void drawStats(int pl)
 {
 	
@@ -294,7 +310,7 @@ void drawStats(int pl)
 }
 void drawControls()
 {
-	cout << "'wasd' to move.'p' to check player's position.'x' to quit.\n'z' to save and load data.'o' to open options." << endl;
+	cout << "'wasd' to move.'p' to check player's position.'x' to quit.\n'z' to save and load data.'o' to open options.\n'u' to open Player 0's inventory.'i' to open Player 1's inventory." << endl;
 }
 void drawOptions() {
 
@@ -313,24 +329,126 @@ void drawOptions() {
 
 	cout << "'o' to exit." << endl;
 }
+void addItem(item it,int pl) {
+	if (itemsData[it.id].stackable) {
+		for (int i = 0; i < players[pl].items.size(); i++)
+		{
+			if (players[pl].items[i].id == it.id) {
+				players[pl].items[i].number += it.number;
+				return;
+			}
+		}
+		
 
-
-
-
-
-int main()
-{
-	srand(time(NULL));
-
-	map_f.open(map_path.c_str(), ios::in | ios::out);
-	map_of.open(map_path.c_str(), ios::in | ios::out);
+	}
 	
-	stats_f.open(stats_path.c_str(), ios::in | ios::out);
-	stats_of.open(stats_path.c_str(), ios::in | ios::out);
-	settings_f.open(settings_path.c_str(), ios::in | ios::out);
-	settings_of.open(settings_path.c_str(), ios::in | ios::out);
+		players[pl].items.push_back(it);
+	
+	
+}
+void getItemsData() {
+	itemsData_f.close();
+	itemsData_f.open(itemsData_path.c_str(), ios::in | ios::out);
+
+	int coun = 0;
+	int onecoun = 0;
+	vector<itemData> tet;
+	itemData ne;
+	string inp = "";
+
+	while (getline(itemsData_f, inp))
 	{
-		int it=0;
+
+		switch (onecoun)
+		{
+		case 0: {
+			stringstream geek(inp);
+
+
+			geek >> ne.id;
+
+			break;
+		}
+		case 1: {
+			ne.icon = inp[0];
+			break;
+		}
+		case 2: {
+			ne.name = inp;
+
+			break;
+		}
+		case 3: {
+			stringstream geek(inp);
+
+
+			geek >> ne.value;
+
+			break;
+		}
+		case 4: {
+			stringstream geek(inp);
+
+
+			geek >> ne.Special_power;
+
+			break;
+		}
+		case 5: {
+			stringstream geek(inp);
+
+
+			geek >> ne.Special_type;
+
+			break;
+		}
+		case 6: {
+			stringstream geek(inp);
+
+			int nn;
+			geek >> nn;
+			ne.stackable = nn;
+			tet.push_back(ne);
+			onecoun = -1;
+			break;
+		}
+		default:
+			break;
+		}
+		onecoun++;
+	}
+
+	itemsData = tet;
+}
+void drawItemsData() {
+	system("cls");
+	getItemsData();
+
+	cout << "Items's Data"<<endl;
+	for (int i = 0; i < itemsData.size(); i++)
+	{
+		cout  << itemsData[i].icon;
+		cout << " ID:"<<itemsData[i].id ;
+		cout << " Name:" << itemsData[i].name;
+		cout << " value:" << itemsData[i].value ;
+		cout << " Special Power:" << itemsData[i].Special_power ;
+		cout << " Special type:" << itemsData[i].Special_type ;
+		cout << " Stackable?:" << itemsData[i].stackable << endl;
+
+
+
+
+	}
+	_getch();
+}
+
+
+void getInventory() {
+	{
+		inv1_f.close();
+		inv1_f.open(inv1_path.c_str(), ios::in | ios::out);
+
+		int it = 0;
 		bool ided = false;
 		vector<item> tet;
 		item ne;
@@ -347,10 +465,11 @@ int main()
 			}
 		}
 		players[0].items = tet;
-		 it=0;
-		 ided = false;
-		
-		 tet.clear();
+		it = 0;
+		ided = false;
+		inv2_f.close();
+		inv2_f.open(inv2_path.c_str(), ios::in | ios::out);
+		tet.clear();
 		while (inv2_f >> it) {
 			if (ided) {
 				ne.number = it;
@@ -365,57 +484,96 @@ int main()
 		}
 		players[1].items = tet;
 	}
+}
+void setInventory() {
+
+	int siz = players[0].items.size();
+	cout << "siz0" << siz;
+
+	inv1_of.close();
+	inv1_of.open(inv1_path.c_str(), ios::in | ios::out);
+	for (int i = 0; i < siz; i++)
 	{
-		
-		int siz = players[0].items.size();
-		inv1_of.close();
-		inv1_of.open(stats_path.c_str(), ios::in | ios::out);
-		for (int i = 0; i < siz; i++)
-		{
-			inv1_of << players[0].items[i].id<<'\n';
-			inv1_of << players[0].items[i].number << '\n';
+		inv1_of << players[0].items[i].id << '\n';
+		inv1_of << players[0].items[i].number << '\n';
+		cout << "id" << players[0].items[i].id << "num" << players[0].items[i].number;
 
-		}
-		
-
-		 siz = players[1].items.size();
-		inv2_of.close();
-		inv2_of.open(stats_path.c_str(), ios::in | ios::out);
-		for (int i = 0; i < siz; i++)
-		{
-			inv2_of << players[1].items[i].id << '\n';
-			inv2_of << players[1].items[i].number << '\n';
-
-		}
-		
-		
 	}
-	bool sett1[10];
-	bool sett2 = 0;
-	int sett3 = 0;
-	while (settings_f >> sett2) {
-		sett1[sett3] = sett2;
-		sett3++;
+
+
+	siz = players[1].items.size();
+	cout << "siz1" << siz;
+
+	inv2_of.close();
+	inv2_of.open(inv2_path.c_str(), ios::in | ios::out);
+	for (int i = 0; i < siz; i++)
+	{
+		inv2_of << players[1].items[i].id << '\n';
+		inv2_of << players[1].items[i].number << '\n';
+		cout << "id" << players[1].items[i].id << "num" << players[1].items[i].number;
+
 	}
-	PopUpPause = sett1[0];
-	int a = 0;
-	int b = 0;
-	int n[20];
+
+
+}
+void setPlayerStats() {
+	stats_of.close();
+	stats_of.open(stats_path.c_str(), ios::in | ios::out);
+	for (int i = 0; i < 2; i++)
+	{
+		stats_of << players[0].hp << '\n';
+		stats_of << players[0].max_hp << '\n';
+		stats_of << players[0].mana << '\n';
+		stats_of << players[0].max_mana << '\n';
+		stats_of << players[0].coins << '\n';
+	}
+	
+	
+}
+void getPlayerStats() {
+	int data[20];
 	int value = 0;
 	int nl = 0;
 	while (stats_f >> value) {
-		n[nl] = value;
+		data[nl] = value;
 		nl++;
 	}
-	
+
 	for (int plc = 0; plc < 2; plc++)
 	{
-		players[plc].hp = n[plc*data_size +0];
-		players[plc].max_hp = n[plc * data_size + 1];
-		players[plc].mana = n[plc * data_size + 2];
-		players[plc].max_mana = n[plc *data_size + 3];
-		players[plc].coins = n[plc * data_size + 4];
+		players[plc].hp = data[plc*data_size + 0];
+		players[plc].max_hp = data[plc * data_size + 1];
+		players[plc].mana = data[plc * data_size + 2];
+		players[plc].max_mana = data[plc *data_size + 3];
+		players[plc].coins = data[plc * data_size + 4];
 	}
+}
+void setSettings() {
+	settings_of.close();
+	settings_of.open(settings_path.c_str(), ios::in | ios::out);
+	settings_of << PopUpPause;
+	settings_of.flush();
+}
+void getSettings() {
+	settings_f.close();
+	settings_f.open(settings_path.c_str(), ios::in | ios::out);
+	bool settinhstab [10];
+	bool inputter = 0;
+	int conter = 0;
+	while (settings_f >> inputter) {
+		settinhstab[conter] = inputter;
+		conter++;
+	}
+	PopUpPause = settinhstab[0];
+}
+void getMap() {
+	map_f.close();
+	map_f.open(map_path.c_str(), ios::in | ios::out);
+	int a = 0;
+	int b = 0;
+
+	map_f.flush();
+
 	while (map_f >> inputer) {
 
 		if (inputer == 'l')
@@ -428,6 +586,70 @@ int main()
 		b++;
 
 	}
+}
+void drawInventory(int pl) {
+	getInventory();
+	system("cls");
+
+
+	cout << "Player " << pl << "'s inventory" << endl;
+	for (int i = 0; i < players[pl].items.size(); i++)
+	{
+		itemData iD = itemsData[players[pl].items[i].id];
+		if (iD.stackable) {
+			cout << players[pl].items[i].number << "x ";
+		}
+		cout <<iD.icon<<" "<< iD.name << ". Value: " << iD.value;
+
+
+
+		cout << endl;
+	}
+	cout << "'u' to open Player 0's inventory.'i' to open Player 1's inventory.'r' to add rock to Player " << pl << ".'x' to exit this menu" << endl;
+
+
+	inv_input = _getch();
+
+
+	switch (inv_input) {
+	case 'u': {
+		drawInventory(0);
+
+		break;
+	}
+	case 'i': {
+		drawInventory(1);
+
+		break;
+	}
+	case 'r': {
+		item it;
+		it.id = 0;
+		it.number = 1;
+		addItem(it, pl);
+		drawInventory(pl);
+
+
+		break;
+	}
+	case 'x': {
+		return;
+	}
+	default:
+		return;
+	}
+}
+
+int main()
+{
+	srand(time(NULL));
+
+
+	getItemsData();
+	getInventory();
+
+	getSettings();
+	getMap();
 
 	for (int x = 0; x < size_x; x++)
 	{
@@ -443,238 +665,93 @@ int main()
 				players[1].player_x = start_x;
 				players[1].player_y = start_y;
 			}
-			
+
 		}
 	}
 	while (true) {
-	
-	//	cout << curr_pl;
 
-		//cout << nn;
-		
-			drawMap(0);
+		//	cout << curr_pl;
 
-			drawStats(0);
-			drawStats(1);
+			//cout << nn;
 
-			drawControls();
+		drawMap(0);
 
+		drawStats(0);
+		drawStats(1);
 
-
-			player_input = _getch();
+		drawControls();
 
 
-			switch (player_input) {
-			case 'w':
-			{
-				if (player_move_checker(-1, 0, 0)) {
-					players[0].player_x--;
-				}
-				break;
+
+		player_input = _getch();
+
+
+		switch (player_input) {
+		case 'w':
+		{
+			if (player_move_checker(-1, 0, 0)) {
+				players[0].player_x--;
 			}
-			case 'a':
-			{
-				if (player_move_checker(0, -1, 0)) {
-					players[0].player_y--;
-				}
-				break;
+			break;
+		}
+		case 'a':
+		{
+			if (player_move_checker(0, -1, 0)) {
+				players[0].player_y--;
 			}
-			case 's':
-			{
-				if (player_move_checker(1, 0, 0)) {
-					players[0].player_x++;
-				}
-				break;
+			break;
+		}
+		case 's':
+		{
+			if (player_move_checker(1, 0, 0)) {
+				players[0].player_x++;
 			}
-			case 'd':
-			{
-				if (player_move_checker(0, 1, 0)) {
-					players[0].player_y++;
-				}
-
-				break;
-
+			break;
+		}
+		case 'd':
+		{
+			if (player_move_checker(0, 1, 0)) {
+				players[0].player_y++;
 			}
-			case 'p':
-			{
-				cout << "Player " << 0 << ": x:" << players[0].player_x << "|y:" << players[0].player_y << endl;
-				cout << "Player " << 1 << ": x:" << players[1].player_x << "|y:" << players[1].player_y << endl;
 
-				waiter();
-				break;
-			}
-			case 'x':
-			{
-				stats_of.close();
-				stats_of.open(stats_path.c_str(), ios::in | ios::out);
+			break;
 
-				stats_of << players[0].hp << '\n';
-				stats_of << players[0].max_hp << '\n';
-				stats_of << players[0].mana << '\n';
-				stats_of << players[0].max_mana << '\n';
-				stats_of << players[0].coins << '\n';
-				stats_of << players[1].hp << '\n';
-				stats_of << players[1].max_hp << '\n';
-				stats_of << players[1].mana << '\n';
-				stats_of << players[1].max_mana << '\n';
-				stats_of << players[1].coins << '\n';
-				settings_f.close();
-				settings_f.open(settings_path.c_str(), ios::in | ios::out);
-				settings_of << PopUpPause;
-				settings_of.flush();
-				{
+		}
+		case 'p':
+		{
+			cout << "Player " << 0 << ": x:" << players[0].player_x << "|y:" << players[0].player_y << endl;
+			cout << "Player " << 1 << ": x:" << players[1].player_x << "|y:" << players[1].player_y << endl;
 
-					int siz = players[0].items.size();
-					inv1_of.close();
-					inv1_of.open(stats_path.c_str(), ios::in | ios::out);
-					for (int i = 0; i < siz; i++)
-					{
-						inv1_of << players[0].items[i].id << '\n';
-						inv1_of << players[0].items[i].number << '\n';
-
-					}
+			waiter();
+			break;
+		}
+		case 'x':
+		{
 
 
-					 siz = players[1].items.size();
-					inv2_of.close();
-					inv2_of.open(stats_path.c_str(), ios::in | ios::out);
-					for (int i = 0; i < siz; i++)
-					{
-						inv2_of << players[1].items[i].id << '\n';
-						inv2_of << players[1].items[i].number << '\n';
+			setSettings();
+			setPlayerStats();
+			setInventory();
+			getMap();
+			return 0;
 
-					}
-
-
-				}
-				return 0;
-
-				break;
-			}
-			case 'z':
-			{
-				stats_of.close();
-				stats_of.open(stats_path.c_str(), ios::in | ios::out);
-				stats_f.close();
-				stats_f.open(stats_path.c_str(), ios::in | ios::out);
-				settings_f.close();
-				settings_f.open(settings_path.c_str(), ios::in | ios::out);
-				stats_of << players[0].hp << '\n';
-				stats_of << players[0].max_hp << '\n';
-				stats_of << players[0].mana << '\n';
-				stats_of << players[0].max_mana << '\n';
-				stats_of << players[0].coins << '\n';
-				stats_of << players[1].hp << '\n';
-				stats_of << players[1].max_hp << '\n';
-				stats_of << players[1].mana << '\n';
-				stats_of << players[1].max_mana << '\n';
-				stats_of << players[1].coins << '\n';
-				int a = 0;
-				int b = 0;
-				int n[20];
-				int value = 0;
-				int nl = 0;
-				while (stats_f >> value) {
-					n[nl] = value;
-					nl++;
-				}
-
-				for (int plc = 0; plc < 2; plc++)
-				{
-					players[plc].hp = n[plc*data_size + 0];
-					players[plc].max_hp = n[plc * data_size + 1];
-					players[plc].mana = n[plc * data_size + 2];
-					players[plc].max_mana = n[plc *data_size + 3];
-					players[plc].coins = n[plc * data_size + 4];
-				}
-				map_f.flush();
-
-				while (map_f >> inputer) {
-
-					if (inputer == 'l')
-					{
-						a++;
-						b = 0;
-						continue;
-					}
-					Map[a][b] = inputer;
-					b++;
-
-				}
-				settings_of << PopUpPause;
-				settings_of.flush();
-				bool sett1[10];
-				bool sett2 = 0;
-				int sett3 = 0;
-				while (settings_f >> sett2) {
-					sett1[sett3] = sett2;
-					sett3++;
-				}
-				PopUpPause = sett1[0];
-				{
-
-					int siz = players[0].items.size();
-					inv1_of.close();
-					inv1_of.open(stats_path.c_str(), ios::in | ios::out);
-					for (int i = 0; i < siz; i++)
-					{
-						inv1_of << players[0].items[i].id << '\n';
-						inv1_of << players[0].items[i].number << '\n';
-
-					}
+			break;
+		}
+		case 'z':
+		{
 
 
-					 siz = players[1].items.size();
-					inv2_of.close();
-					inv2_of.open(stats_path.c_str(), ios::in | ios::out);
-					for (int i = 0; i < siz; i++)
-					{
-						inv2_of << players[1].items[i].id << '\n';
-						inv2_of << players[1].items[i].number << '\n';
-
-					}
-
-
-				}
-				{
-					int it = 0;
-					bool ided = false;
-					vector<item> tet;
-					item ne;
-					while (inv1_f >> it) {
-						if (ided) {
-							ne.number = it;
-							tet.push_back(ne);
-							ided = false;
-						}
-						else {
-							ne.id = it;
-							ided = true;
-
-						}
-					}
-					players[0].items = tet;
-					it = 0;
-					ided = false;
-
-					tet.clear();
-					while (inv2_f >> it) {
-						if (ided) {
-							ne.number = it;
-							tet.push_back(ne);
-							ided = false;
-						}
-						else {
-							ne.id = it;
-							ided = true;
-
-						}
-					}
-					players[1].items = tet;
-				}
-				break;
-			}
-			case 'o':
+			getMap();
+			setSettings();
+			getSettings();
+			setPlayerStats();
+			getPlayerStats();
+			setInventory();
+			getInventory();
+			break;
+		}
+		case 'o':
+		{
 			{
 				bool opt = true;
 				while (opt) {
@@ -704,40 +781,60 @@ int main()
 					}
 				}
 				break; }
-			case 72:
-			{
-				if (player_move_checker(-1, 0, 1)) {
-					players[1].player_x--;
-				}
-				break;
+		case 72:
+		{
+			if (player_move_checker(-1, 0, 1)) {
+				players[1].player_x--;
 			}
-			case 80:
-			{
-				if (player_move_checker(1, 0, 1)) {
-					players[1].player_x++;
-				}
-				break;
+			break;
+		}
+		case 80:
+		{
+			if (player_move_checker(1, 0, 1)) {
+				players[1].player_x++;
 			}
-			case 77:
-			{
-				if (player_move_checker(0, 1, 1)) {
-					players[1].player_y++;
-				}
+			break;
+		}
+		case 77:
+		{
+			if (player_move_checker(0, 1, 1)) {
+				players[1].player_y++;
+			}
 
-				break;
+			break;
 
-			}			case 75:
-			{
-				if (player_move_checker(0, -1, 1)) {
-					players[1].player_y--;
-				}
-				break;
+		}			case 75:
+		{
+			if (player_move_checker(0, -1, 1)) {
+				players[1].player_y--;
 			}
-			default: {break; }
-			}
-			check_player_position(0);
-			check_player_position(1);
+			break;
+		}
+		default: {break; }
+		case 'u': {
+			drawInventory(0);
+
+			break;
+		}
+		case 'i': {
+			drawInventory(1);
+
+			break;
+		}
+
+		case 'l': {
+			drawItemsData();
+
+			break;
+		}
+
 
 		}
+		}
+		check_player_position(0);
+		check_player_position(1);
+
+		
 	}
 
+}
