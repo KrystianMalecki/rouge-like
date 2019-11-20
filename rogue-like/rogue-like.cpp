@@ -21,12 +21,15 @@ BACKGROUND_INTENSITY
 #include <iomanip>
 #include <ctime>
 #include <vector>
+
+#include <algorithm>
 #include <time.h>
 using namespace std;
 //Structs
 struct  item
 {
-
+	int id;
+	int number;
 };
 //Player's Data
 struct  player
@@ -38,6 +41,7 @@ struct  player
 	int mana = 10;
 	int max_mana = 10;
 	int coins;
+	vector <item> items;
 };
 int data_size = 5;
 player players[2];
@@ -46,9 +50,12 @@ player players[2];
 string const map_path("map/map.txt");
 ofstream map_of;
 fstream map_f;
-string const inv_path("player/items.txt");
-ofstream inv_of;
-fstream inv_f;
+string const inv1_path("player/items1.txt");
+ofstream inv1_of;
+fstream inv1_f;
+string const inv2_path("player/items2.txt");
+ofstream inv2_of;
+fstream inv2_f;
 string const stats_path("player/stats.txt");
 fstream stats_f;
 ofstream stats_of;
@@ -307,19 +314,82 @@ void drawOptions() {
 	cout << "'o' to exit." << endl;
 }
 
+
+
+
+
 int main()
 {
 	srand(time(NULL));
 
 	map_f.open(map_path.c_str(), ios::in | ios::out);
 	map_of.open(map_path.c_str(), ios::in | ios::out);
-	inv_f.open(inv_path.c_str(), ios::in | ios::out);
-	inv_of.open(inv_path.c_str(), ios::in | ios::out);
+	
 	stats_f.open(stats_path.c_str(), ios::in | ios::out);
 	stats_of.open(stats_path.c_str(), ios::in | ios::out);
 	settings_f.open(settings_path.c_str(), ios::in | ios::out);
 	settings_of.open(settings_path.c_str(), ios::in | ios::out);
+	{
+		int it=0;
+		bool ided = false;
+		vector<item> tet;
+		item ne;
+		while (inv1_f >> it) {
+			if (ided) {
+				ne.number = it;
+				tet.push_back(ne);
+				ided = false;
+			}
+			else {
+				ne.id = it;
+				ided = true;
 
+			}
+		}
+		players[0].items = tet;
+		 it=0;
+		 ided = false;
+		
+		 tet.clear();
+		while (inv2_f >> it) {
+			if (ided) {
+				ne.number = it;
+				tet.push_back(ne);
+				ided = false;
+			}
+			else {
+				ne.id = it;
+				ided = true;
+
+			}
+		}
+		players[1].items = tet;
+	}
+	{
+		
+		int siz = players[0].items.size();
+		inv1_of.close();
+		inv1_of.open(stats_path.c_str(), ios::in | ios::out);
+		for (int i = 0; i < siz; i++)
+		{
+			inv1_of << players[0].items[i].id<<'\n';
+			inv1_of << players[0].items[i].number << '\n';
+
+		}
+		
+
+		 siz = players[1].items.size();
+		inv2_of.close();
+		inv2_of.open(stats_path.c_str(), ios::in | ios::out);
+		for (int i = 0; i < siz; i++)
+		{
+			inv2_of << players[1].items[i].id << '\n';
+			inv2_of << players[1].items[i].number << '\n';
+
+		}
+		
+		
+	}
 	bool sett1[10];
 	bool sett2 = 0;
 	int sett3 = 0;
@@ -452,6 +522,31 @@ int main()
 				settings_f.open(settings_path.c_str(), ios::in | ios::out);
 				settings_of << PopUpPause;
 				settings_of.flush();
+				{
+
+					int siz = players[0].items.size();
+					inv1_of.close();
+					inv1_of.open(stats_path.c_str(), ios::in | ios::out);
+					for (int i = 0; i < siz; i++)
+					{
+						inv1_of << players[0].items[i].id << '\n';
+						inv1_of << players[0].items[i].number << '\n';
+
+					}
+
+
+					 siz = players[1].items.size();
+					inv2_of.close();
+					inv2_of.open(stats_path.c_str(), ios::in | ios::out);
+					for (int i = 0; i < siz; i++)
+					{
+						inv2_of << players[1].items[i].id << '\n';
+						inv2_of << players[1].items[i].number << '\n';
+
+					}
+
+
+				}
 				return 0;
 
 				break;
@@ -516,6 +611,67 @@ int main()
 					sett3++;
 				}
 				PopUpPause = sett1[0];
+				{
+
+					int siz = players[0].items.size();
+					inv1_of.close();
+					inv1_of.open(stats_path.c_str(), ios::in | ios::out);
+					for (int i = 0; i < siz; i++)
+					{
+						inv1_of << players[0].items[i].id << '\n';
+						inv1_of << players[0].items[i].number << '\n';
+
+					}
+
+
+					 siz = players[1].items.size();
+					inv2_of.close();
+					inv2_of.open(stats_path.c_str(), ios::in | ios::out);
+					for (int i = 0; i < siz; i++)
+					{
+						inv2_of << players[1].items[i].id << '\n';
+						inv2_of << players[1].items[i].number << '\n';
+
+					}
+
+
+				}
+				{
+					int it = 0;
+					bool ided = false;
+					vector<item> tet;
+					item ne;
+					while (inv1_f >> it) {
+						if (ided) {
+							ne.number = it;
+							tet.push_back(ne);
+							ided = false;
+						}
+						else {
+							ne.id = it;
+							ided = true;
+
+						}
+					}
+					players[0].items = tet;
+					it = 0;
+					ided = false;
+
+					tet.clear();
+					while (inv2_f >> it) {
+						if (ided) {
+							ne.number = it;
+							tet.push_back(ne);
+							ided = false;
+						}
+						else {
+							ne.id = it;
+							ided = true;
+
+						}
+					}
+					players[1].items = tet;
+				}
 				break;
 			}
 			case 'o':
