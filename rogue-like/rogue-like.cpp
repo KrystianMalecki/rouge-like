@@ -42,10 +42,9 @@ struct  item
 	int id;
 	int number;
 };
-//Player's Data
 struct  player
 {
-	bool alive=true;
+	bool alive = true;
 	int player_x;
 	int player_y;
 	int hp = 10;
@@ -53,10 +52,25 @@ struct  player
 	int mana = 10;
 	int max_mana = 10;
 	int coins;
+	int attack;
+	int lvl = 0;
+	int xp = 0;
 	vector <item> items;
 };
+struct enemy {
+	string name;
+	char icon;
+	int max_hp = 10;
+	int dmg=1;
+	float hp_scal = 0.1f;
+	float dmg_scal = 0.1f;
+
+};
+//Enemies
+vector <enemy> Enemies;
+//Player's Data
 vector <itemData> itemsData;
-int data_size = 5;
+int data_size = 9;
 player players[2];
 //int curr_pl;
 //Static Data
@@ -78,13 +92,16 @@ ofstream settings_of;
 string const itemsData_path("data/items.txt");
 fstream itemsData_f;
 ofstream itemsData_of;
-
+string const enemiesData_path("data/enemies.txt");
+fstream enemiesData_f;
+ofstream enemiesData_of;
 int size_x = 20, size_y = 20;
 char Map[20][20];
 int start_x, start_y;
 char inputer;
 char player_input;
 char options_input;
+char combat_input;
 char inv_input;
 char inmovable[2] = { '#','~' };
 HANDLE static hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -123,6 +140,24 @@ void drawStats(int pl)
 	SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
 	cout << "Coins:" << players[pl].coins;
 	SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_GREEN);
+	cout << " | ";
+	SetConsoleTextAttribute(hConsole,   FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+	cout << "LVL:" << players[pl].lvl<<" ";
+	SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN );
+	cout << "Xp:" << players[pl].xp<<"/"<<(players[pl].lvl*(10+players[pl].lvl)) << " ";
+	SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+	int xpsum=(int) (((players[pl].xp * 1.0) / (players[pl].lvl*(10 + players[pl].lvl)))*10.0);
+	for (int i = 0; i < xpsum; i++)
+	{
+		cout << (char)219;
+	}
+	SetConsoleTextAttribute(hConsole, FOREGROUND_INTENSITY);
+
+	for (int i = 0; i < 10-xpsum; i++)
+	{
+		cout << (char)219;
+	}
+	SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_GREEN);
 
 }
 int randomize(int min, int max) {
@@ -132,6 +167,18 @@ void addMana(int count, int pl) {
 	players[pl].mana += count;
 	if (players[pl].mana > players[pl].max_mana) {
 		players[pl].mana = players[pl].max_mana;
+	}
+}
+void addXP(int count, int pl) {
+	players[pl].xp += count;
+	int nextlvl = players[pl].lvl*(10 + players[pl].lvl);
+	if (players[pl].xp >= nextlvl) {
+
+		players[pl].lvl++;
+		
+		cout << "You advanced to level " << players[pl].lvl << "!"<< endl;
+
+		players[pl].xp -= nextlvl;
 	}
 }
 void addHP(int count, int pl) {
@@ -144,6 +191,119 @@ void waiter() {
 	if (PopUpPause) {
 		system("pause");
 
+	}
+}
+void Combat(int pl, string type,int lvl) {
+	int k;
+	for (k = 0; k < Enemies.size(); k++)
+	{
+		if (Enemies[k].name == type) {
+			break;
+		}
+	}
+	if (Enemies.size() == k) {
+		return;
+	}
+	enemy currEnemy = Enemies[k];
+	currEnemy.dmg += currEnemy.dmg_scal*lvl;
+	currEnemy.max_hp += currEnemy.hp_scal*lvl;
+
+	int enemy_hp = currEnemy.max_hp;
+
+	while (true) {
+		system("cls");
+
+		cout << "Fight with " << Enemies[k].name << endl;
+		drawStats(pl);
+		SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_GREEN);
+		cout << " | ";
+		SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN);
+		cout << "Attack:" << players[pl].attack << endl;
+		
+		SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_GREEN);
+
+		if (type == "Orc") {
+			SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+		}
+		else {
+			SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_GREEN);
+
+		}
+		cout << type << " : ";
+		SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY);
+		cout << " HP:" << enemy_hp << "/" << currEnemy.max_hp << " <3";
+		SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_GREEN);
+		cout << " | ";
+		SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN);
+		cout << "Attack:" << currEnemy.dmg;
+		SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_GREEN);
+		cout << " | ";
+		SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+		cout << "LVL:" << lvl;
+		SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_GREEN);
+		cout << endl;
+		cout << "1. Attack for " << players[pl].attack << endl;
+		cout << "2. Heal for " << 2 << ". Cost: " << 2;
+		if (2 == 1) {
+			cout << " mana point" << endl;
+		}
+		else {
+			cout << " mana points" << endl;
+
+		}
+		cout << "3. Run" << endl;
+		combat_input = _getch();
+
+		switch (combat_input) {
+		case '1': {
+			enemy_hp -= 5;// players[pl].attack;
+			break;
+		}
+		case '2': {
+			addHP(2, pl);
+			addMana(-2, pl);
+
+			break;
+		}
+		case '3': {
+			addHP(-currEnemy.dmg, pl);
+			return;
+			break;
+		}
+		default:
+			break;
+		}
+		{
+			addHP(-currEnemy.dmg, pl);
+
+		}
+		if (players[pl].hp <= 0) {
+			return;
+		}
+		if (enemy_hp <= 0) {
+		
+				cout << endl;
+				cout << "You killed " << currEnemy.name<<"!";
+				cout << endl;
+
+				if (lvl * 5 == 1) {
+					cout << "You collected " << lvl * 5 << " coin!";
+				}
+				else {
+					cout << "You collected " << lvl * 5 << " coins!";
+
+				}
+				cout << endl;
+
+					cout << "You gained " << lvl * 5 << " xp!";
+					cout << endl;
+
+					players[pl].coins += lvl * 5;
+					addXP(lvl * 5, pl);
+			
+				waiter();
+			return;
+		}
 	}
 }
 void check_player_position(int pl)
@@ -209,6 +369,13 @@ void check_player_position(int pl)
 		waiter();
 		break;
 	}
+	case 'R':
+	{
+		int lvl = randomize(1, 5);
+		Combat(pl, "Orc",lvl);
+		break;
+	}
+	
 	}
 }
 bool player_move_checker(int a, int b, int pl) {
@@ -423,6 +590,76 @@ void addItem(item it, int pl) {
 
 
 }
+void getEnemiesData() {
+	enemiesData_f.close();
+	enemiesData_f.open(enemiesData_path.c_str(), ios::in | ios::out);
+
+	int coun = 0;
+	int onecoun = 0;
+	vector<enemy> tet;
+	enemy ne;
+	string inp = "";
+
+	while (getline(enemiesData_f, inp))
+	{
+
+		switch (onecoun)
+		{
+		case 0: {
+			ne.name = inp;
+
+			break;
+		}
+		case 1: {
+			
+
+
+			ne.icon = inp[0];
+
+			break;
+		}
+		case 2: {
+			stringstream geek(inp);
+
+
+			geek >> ne.max_hp;
+		
+
+			break;
+		}
+		case 3: {
+			stringstream geek(inp);
+
+
+			geek >> ne.dmg;
+
+			break;
+		}
+		case 4: {
+			stringstream geek(inp);
+
+
+			geek >> ne.hp_scal;
+
+			break;
+		}
+		case 5: {
+			stringstream geek(inp);
+
+
+			geek >> ne.dmg_scal;
+			onecoun = -1;
+			tet.push_back(ne);
+			break;
+		}
+		default:
+			break;
+		}
+		onecoun++;
+	}
+
+	Enemies = tet;
+}
 void getItemsData() {
 	itemsData_f.close();
 	itemsData_f.open(itemsData_path.c_str(), ios::in | ios::out);
@@ -601,6 +838,11 @@ void setPlayerStats() {
 		stats_of << players[i].mana << '\n';
 		stats_of << players[i].max_mana << '\n';
 		stats_of << players[i].coins << '\n';
+		stats_of << players[i].player_x << '\n';
+		stats_of << players[i].player_y << '\n';
+		stats_of << players[i].lvl << '\n';
+		stats_of << players[i].xp << '\n';
+
 	}
 
 
@@ -623,6 +865,12 @@ void getPlayerStats() {
 		players[plc].mana = data[plc * data_size + 2];
 		players[plc].max_mana = data[plc *data_size + 3];
 		players[plc].coins = data[plc * data_size + 4];
+		players[plc].player_x = data[plc * data_size + 5];
+
+		players[plc].player_y = data[plc * data_size + 6];
+		players[plc].lvl = data[plc * data_size + 7];
+		players[plc].xp = data[plc * data_size + 8];
+
 	}
 }
 void setSettings() {
@@ -728,6 +976,7 @@ void drawInventory(int pl) {
 		return;
 	}
 }
+
 int main()
 {
 	srand(time(NULL));
@@ -735,11 +984,11 @@ int main()
 	getPlayerStats();
 	getItemsData();
 	getInventory();
-
+	getEnemiesData();
 	getSettings();
 	getMap();
 
-	for (int x = 0; x < size_x; x++)
+	/*for (int x = 0; x < size_x; x++)
 	{
 		for (int y = 0; y < size_y; y++)
 		{
@@ -755,7 +1004,7 @@ int main()
 			}
 
 		}
-	}
+	}*/
 	while (true) {
 
 		drawMap(0);
@@ -826,6 +1075,7 @@ int main()
 
 
 			getMap();
+			getEnemiesData();
 			setSettings();
 			getSettings();
 			setPlayerStats();
@@ -919,6 +1169,21 @@ int main()
 		case 'c': {
 			drawChars();
 
+			break;
+		}
+		case 'j': {
+			system("cls");
+			for (int i = 0; i < Enemies.size(); i++)
+			{
+				cout << Enemies[i].name<<endl;
+				cout << Enemies[i].icon << endl;
+				cout << Enemies[i].max_hp << endl;
+				cout << Enemies[i].dmg << endl;
+				cout << Enemies[i].hp_scal << endl;
+				cout << Enemies[i].dmg_scal << endl;
+
+			}
+			system("pause");
 			break;
 		}
 
