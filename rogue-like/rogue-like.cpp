@@ -108,6 +108,8 @@ HANDLE static hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 //Options
 bool PopUpPause;
 bool DataOnRight;
+bool stupid;
+//
 void drawChars() {
 	system("cls");
 	for (int i = 0; i < 257; i++)
@@ -128,7 +130,13 @@ void drawStats(int pl)
 
 		SetConsoleTextAttribute(hConsole, FOREGROUND_RED);
 	}
-	cout << "Player " << pl << " : ";
+	if (!stupid) {
+		cout << "Player " << pl << " : ";
+	}
+	else {
+		cout << "Player " << pl+1 << " : ";
+
+	}
 	SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY);
 	cout << "HP:" << players[pl].hp << "/" << players[pl].max_hp << " <3";
 	SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_GREEN);
@@ -267,6 +275,8 @@ void Combat(int pl, string type,int lvl) {
 		}
 		case '3': {
 			addHP(-currEnemy.dmg, pl);
+			Map[players[pl].player_x][players[pl].player_y] = '_';
+
 			return;
 			break;
 		}
@@ -278,6 +288,8 @@ void Combat(int pl, string type,int lvl) {
 
 		}
 		if (players[pl].hp <= 0) {
+			Map[players[pl].player_x][players[pl].player_y] = '_';
+
 			return;
 		}
 		if (enemy_hp <= 0) {
@@ -300,7 +312,8 @@ void Combat(int pl, string type,int lvl) {
 
 					players[pl].coins += lvl * 5;
 					addXP(lvl * 5, pl);
-			
+					Map[players[pl].player_x][players[pl].player_y] = '_';
+
 				waiter();
 			return;
 		}
@@ -312,7 +325,13 @@ void check_player_position(int pl)
 		players[pl].alive = false;
 		players[pl].player_x = -1;
 		players[pl].player_y = -1;
-		cout << "Player " << pl << " died!"<<endl;
+		if (!stupid) {
+			cout << "Player " << pl << " died!" << endl;
+		}
+		else {
+			cout << "Player " << pl+1 << " died!" << endl;
+
+		}
 		waiter();
 
 	}
@@ -409,7 +428,13 @@ void drawControls(int i)
 
 	}
 	else if (i == 4) {
-		cout << "'u' to open Player 0's inventory.'i' to open Player 1's inventory.";
+		if (!stupid) {
+			cout << "'u' to open Player 0's inventory.'i' to open Player 1's inventory.";
+		}
+		else {
+			cout << "'u' to open Player 1's inventory.'i' to open Player 2's inventory.";
+
+		}
 	}
 	else if (i == 5) {
 		cout << "'l' to open item's data.'c' to draw chars.";
@@ -570,6 +595,10 @@ void drawOptions() {
 	show_o_x(DataOnRight);
 	cout << "- Draw Player's Data and controls on right part of the screen. 'w' to toggle." << endl;
 	SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_GREEN);
+	show_o_x(stupid);
+	cout << "- I'm fucking stupid. 'e' to toggle." << endl;
+	SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_GREEN);
+	
 	cout << "'o' to exit." << endl;
 }
 void addItem(item it, int pl) {
@@ -878,6 +907,8 @@ void setSettings() {
 	settings_of.open(settings_path.c_str(), ios::in | ios::out);
 	settings_of << PopUpPause<<endl;
 	settings_of << DataOnRight << endl;
+	settings_of << stupid << endl;
+
 	settings_of.flush();
 }
 void getSettings() {
@@ -892,6 +923,8 @@ void getSettings() {
 	}
 	PopUpPause = settinhstab[0];
 	DataOnRight = settinhstab[1];
+	stupid = settinhstab[2];
+
 }
 void getMap() {
 	map_f.close();
@@ -917,8 +950,13 @@ void getMap() {
 void drawInventory(int pl) {
 	system("cls");
 
+	if (!stupid) {
+		cout << "Player " << pl << "'s inventory" << endl;
+	}
+	else {
+		cout << "Player " << pl+1<< "'s inventory" << endl;
 
-	cout << "Player " << pl << "'s inventory" << endl;
+	}
 	int n = players[pl].items.size();
 	for (int i = 0; i < n; i++)
 	{
@@ -932,7 +970,13 @@ void drawInventory(int pl) {
 
 		cout << endl;
 	}
-	cout << "'u' to open Player 0's inventory.'i' to open Player 1's inventory.'r' to add rock to Player " << pl << ".'x' to exit this menu" << endl;
+	if (!stupid) {
+		cout << "'u' to open Player 0's inventory.'i' to open Player 1's inventory.'r' to add rock to Player " << pl << ".'x' to exit this menu" << endl;
+	}
+	else {
+		cout << "'u' to open Player 1's inventory.'i' to open Player 2's inventory.'r' to add rock to Player " << pl << ".'x' to exit this menu" << endl;
+
+	}
 
 
 	inv_input = _getch();
@@ -1052,8 +1096,15 @@ int main()
 		}
 		case 'p':
 		{
-			cout << "Player " << 0 << ": x:" << players[0].player_x << "|y:" << players[0].player_y << endl;
-			cout << "Player " << 1 << ": x:" << players[1].player_x << "|y:" << players[1].player_y << endl;
+			if (!stupid) {
+				cout << "Player " << 0 << ": x:" << players[0].player_x << "|y:" << players[0].player_y << endl;
+				cout << "Player " << 1 << ": x:" << players[1].player_x << "|y:" << players[1].player_y << endl;
+			}
+			else {
+				cout << "Player " << 1 << ": x:" << players[0].player_x << "|y:" << players[0].player_y << endl;
+				cout << "Player " <<2 << ": x:" << players[1].player_x << "|y:" << players[1].player_y << endl;
+			}
+			
 
 			waiter();
 			break;
@@ -1106,9 +1157,14 @@ int main()
 						PopUpPause = !PopUpPause;
 						break;
 					}
+					
 					case 'w':
 					{
 						DataOnRight = !DataOnRight;
+						break;
+					}case 'e':
+					{
+						stupid = !stupid;
 						break;
 					}
 					default:
