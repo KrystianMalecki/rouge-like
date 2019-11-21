@@ -78,8 +78,8 @@ string const itemsData_path("data/items.txt");
 fstream itemsData_f;
 ofstream itemsData_of;
 
-int size_x = 20, size_y = 20;
-char Map[20][20];
+int size_x = 90, size_y = 90;
+char Map[90][90];
 int start_x, start_y;
 char inputer;
 char player_input;
@@ -89,11 +89,36 @@ char inmovable[2] = { '#','~' };
 HANDLE static hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 //Options
 bool PopUpPause;
+void drawStats(int pl)
+{
 
+	if (pl == 0) {
+
+		SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE);
+
+	}
+	else {
+
+		SetConsoleTextAttribute(hConsole, FOREGROUND_RED);
+	}
+	cout << "Player " << pl << " : ";
+	SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY);
+	cout << "HP:" << players[pl].hp << "/" << players[pl].max_hp << " <3";
+	SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_GREEN);
+	cout << " | ";
+	SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+	cout << "Mana:" << players[pl].mana << "/" << players[pl].max_mana;
+	SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_GREEN);
+	cout << " | ";
+	SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+	cout << "Coins:" << players[pl].coins;
+	SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_GREEN);
+
+}
 int randomize(int min, int max) {
 	return rand() % (max - min + 1) + min;
 }
-void addMana(int count,int pl) {
+void addMana(int count, int pl) {
 	players[pl].mana += count;
 	if (players[pl].mana > players[pl].max_mana) {
 		players[pl].mana = players[pl].max_mana;
@@ -111,18 +136,14 @@ void waiter() {
 
 	}
 }
-
 void check_player_position(int pl)
 {
-	
-	
-	
-	
+
 	char buff = Map[players[pl].player_x][players[pl].player_y];
 	switch (buff) {
 	case 'T':
 	{	cout << "You stepped on a trap! -1 HP!";
-	addHP(-1,pl);
+	addHP(-1, pl);
 	Map[players[pl].player_x][players[pl].player_y] = 't';
 	waiter();
 	break;
@@ -152,7 +173,7 @@ void check_player_position(int pl)
 			cout << "You gained " << co << " mana points!";
 
 		}
-		addMana(co,pl);
+		addMana(co, pl);
 		Map[players[pl].player_x][players[pl].player_y] = '_';
 		waiter();	break;
 	}
@@ -166,14 +187,14 @@ void check_player_position(int pl)
 			cout << "You gained " << co << " hp!";
 
 		}
-		addHP(co,pl);
+		addHP(co, pl);
 		Map[players[pl].player_x][players[pl].player_y] = '_';
 		waiter();
 		break;
 	}
 	}
 }
-bool player_move_checker(int a, int b,int pl) {
+bool player_move_checker(int a, int b, int pl) {
 	int counter = 0;
 	int sizee = sizeof(inmovable) / sizeof(inmovable[0]);
 	for (int i = 0; i < sizee; i++)
@@ -188,7 +209,7 @@ void drawMap(int pl)
 {
 	system("cls");
 
-	
+
 	for (int x = 0; x < size_x; x++)
 	{
 		for (int y = 0; y < size_y; y++)
@@ -200,15 +221,18 @@ void drawMap(int pl)
 				if (x == players[plc].player_x && y == players[plc].player_y)
 				{
 					if (plc == 0) {
+						SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE | FOREGROUND_INTENSITY | BACKGROUND_INTENSITY);
+						//SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE);
 
-						SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE);
-						
 					}
 					else {
-
-						SetConsoleTextAttribute(hConsole, FOREGROUND_RED);
+						SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY | BACKGROUND_INTENSITY);
+						//SetConsoleTextAttribute(hConsole, FOREGROUND_RED);
 					}
-					cout << "@";
+
+
+					cout << (char)206;
+					//cout << "@";
 					rend_pl = true;
 					plc = 2;
 				}
@@ -222,6 +246,21 @@ void drawMap(int pl)
 					SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY);
 					cout << "+";
 				}
+				else if (Map[x][y] == 'S') {
+					SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_INTENSITY);
+					cout << "S";
+				}
+				else if (Map[x][y] == 'R') {
+					SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+					cout << "O";
+				}
+				else if (Map[x][y] == 'O') {
+					SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN);
+
+					cout << (char)153;
+
+				}
+
 				else if (Map[x][y] == '~') {
 					SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY | BACKGROUND_RED | BACKGROUND_INTENSITY);
 					int n = randomize(0, 4);
@@ -273,41 +312,47 @@ void drawMap(int pl)
 				}
 				else
 				{
-					cout << Map[x][y];
+					if (Map[x][y] != 0) {
+						cout << Map[x][y];
+					}
 				}
 			}
 
 		}
 		SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED);
-		cout << endl;
+		
+		if (x == 0) {
+			cout << "   ";
+			drawStats(0);
+		}
+		else if (x == 1) {
+			cout << "   ";
+			drawStats(1);
+		}
+		else if (x == 2) {
+			cout << "   ";
+			cout << "'wasd' to move.'p' to check player's position.'x' to quit.";
+				
+		}
+		else if (x == 3) {
+			cout << "   ";
+			cout << "'z' to save and load data.'o' to open options.";
+				
+		}
+		else if (x == 4) {
+			cout << "   ";
+			cout << "'u' to open Player 0's inventory.'i' to open Player 1's inventory.";
+		}
+		else if (x == 5) {
+			cout << "   ";
+			cout << "'l' to open item's data.";
+		}
+		if (Map[x][0] != 0||x<7) {
+			cout << endl;
+		}
 	}
 }
-void drawStats(int pl)
-{
-	
-	if (pl == 0) {
 
-		SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE);
-
-	}
-	else {
-
-		SetConsoleTextAttribute(hConsole, FOREGROUND_RED);
-	}
-	cout << "Player " << pl << " : ";
-	SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY);
-	cout << "HP:" << players[pl].hp << "/" << players[pl].max_hp << " <3";
-	SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_GREEN);
-	cout << " | ";
-	SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-	cout << "Mana:" << players[pl].mana << "/" << players[pl].max_mana;
-	SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_GREEN);
-	cout << " | ";
-	SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY);
-	cout << "Coins:" << players[pl].coins << endl;
-	SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_GREEN);
-
-}
 void drawControls()
 {
 	cout << "'wasd' to move.'p' to check player's position.'x' to quit.\n'z' to save and load data.'o' to open options.\n'u' to open Player 0's inventory.'i' to open Player 1's inventory." << endl;
@@ -329,7 +374,7 @@ void drawOptions() {
 
 	cout << "'o' to exit." << endl;
 }
-void addItem(item it,int pl) {
+void addItem(item it, int pl) {
 	if (itemsData[it.id].stackable) {
 		for (int i = 0; i < players[pl].items.size(); i++)
 		{
@@ -338,13 +383,14 @@ void addItem(item it,int pl) {
 				return;
 			}
 		}
-		
+
 
 	}
-	
-		players[pl].items.push_back(it);
-	
-	
+	cout << "adding unstackable. id:"<<it.id;
+	players[pl].items.push_back(it);
+	cout << "added id" <<players[pl].items[players[pl].items.size()-1].id;
+
+
 }
 void getItemsData() {
 	itemsData_f.close();
@@ -424,15 +470,15 @@ void drawItemsData() {
 	system("cls");
 	getItemsData();
 
-	cout << "Items's Data"<<endl;
+	cout << "Items's Data" << endl;
 	for (int i = 0; i < itemsData.size(); i++)
 	{
-		cout  << itemsData[i].icon;
-		cout << " ID:"<<itemsData[i].id ;
+		cout << itemsData[i].icon;
+		cout << " ID:" << itemsData[i].id;
 		cout << " Name:" << itemsData[i].name;
-		cout << " value:" << itemsData[i].value ;
-		cout << " Special Power:" << itemsData[i].Special_power ;
-		cout << " Special type:" << itemsData[i].Special_type ;
+		cout << " value:" << itemsData[i].value;
+		cout << " Special Power:" << itemsData[i].Special_power;
+		cout << " Special type:" << itemsData[i].Special_type;
 		cout << " Stackable?:" << itemsData[i].stackable << endl;
 
 
@@ -441,8 +487,6 @@ void drawItemsData() {
 	}
 	_getch();
 }
-
-
 void getInventory() {
 	{
 		inv1_f.close();
@@ -527,8 +571,8 @@ void setPlayerStats() {
 		stats_of << players[0].max_mana << '\n';
 		stats_of << players[0].coins << '\n';
 	}
-	
-	
+
+
 }
 void getPlayerStats() {
 	int data[20];
@@ -557,7 +601,7 @@ void setSettings() {
 void getSettings() {
 	settings_f.close();
 	settings_f.open(settings_path.c_str(), ios::in | ios::out);
-	bool settinhstab [10];
+	bool settinhstab[10];
 	bool inputter = 0;
 	int conter = 0;
 	while (settings_f >> inputter) {
@@ -588,18 +632,18 @@ void getMap() {
 	}
 }
 void drawInventory(int pl) {
-	getInventory();
 	system("cls");
 
 
 	cout << "Player " << pl << "'s inventory" << endl;
-	for (int i = 0; i < players[pl].items.size(); i++)
+	int n = players[pl].items.size();
+	for (int i = 0; i < n; i++)
 	{
 		itemData iD = itemsData[players[pl].items[i].id];
 		if (iD.stackable) {
 			cout << players[pl].items[i].number << "x ";
 		}
-		cout <<iD.icon<<" "<< iD.name << ". Value: " << iD.value;
+		cout << iD.icon << " " << iD.name << ". Value: " << iD.value;
 
 
 
@@ -632,6 +676,16 @@ void drawInventory(int pl) {
 
 		break;
 	}
+	case 't': {
+		item it;
+		it.id = 1;
+		it.number = 1;
+		addItem(it, pl);
+		drawInventory(pl);
+
+
+		break;
+	}
 	case 'x': {
 		return;
 	}
@@ -639,7 +693,6 @@ void drawInventory(int pl) {
 		return;
 	}
 }
-
 int main()
 {
 	srand(time(NULL));
@@ -669,20 +722,7 @@ int main()
 		}
 	}
 	while (true) {
-
-		//	cout << curr_pl;
-
-			//cout << nn;
-
 		drawMap(0);
-
-		drawStats(0);
-		drawStats(1);
-
-		drawControls();
-
-
-
 		player_input = _getch();
 
 
@@ -834,7 +874,7 @@ int main()
 		check_player_position(0);
 		check_player_position(1);
 
-		
+
 	}
 
 }
