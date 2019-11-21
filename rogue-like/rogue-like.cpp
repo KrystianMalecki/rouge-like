@@ -45,6 +45,7 @@ struct  item
 //Player's Data
 struct  player
 {
+	bool alive=true;
 	int player_x;
 	int player_y;
 	int hp = 10;
@@ -71,15 +72,15 @@ fstream inv2_f;
 string const stats_path("player/stats.txt");
 fstream stats_f;
 ofstream stats_of;
-string const settings_path("player/settings.txt");
+string const settings_path("data/settings.txt");
 fstream settings_f;
 ofstream settings_of;
 string const itemsData_path("data/items.txt");
 fstream itemsData_f;
 ofstream itemsData_of;
 
-int size_x = 90, size_y = 90;
-char Map[90][90];
+int size_x = 20, size_y = 20;
+char Map[20][20];
 int start_x, start_y;
 char inputer;
 char player_input;
@@ -89,6 +90,15 @@ char inmovable[2] = { '#','~' };
 HANDLE static hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 //Options
 bool PopUpPause;
+bool DataOnRight;
+void drawChars() {
+	system("cls");
+	for (int i = 0; i < 257; i++)
+	{
+		cout << i<<" - "<<(char)i << endl;
+	}
+	system("pause");
+}
 void drawStats(int pl)
 {
 
@@ -138,7 +148,14 @@ void waiter() {
 }
 void check_player_position(int pl)
 {
+	if (players[pl].hp <= 0) {
+		players[pl].alive = false;
+		players[pl].player_x = -1;
+		players[pl].player_y = -1;
+		cout << "Player " << pl << " died!"<<endl;
+		waiter();
 
+	}
 	char buff = Map[players[pl].player_x][players[pl].player_y];
 	switch (buff) {
 	case 'T':
@@ -195,6 +212,9 @@ void check_player_position(int pl)
 	}
 }
 bool player_move_checker(int a, int b, int pl) {
+	if (!players[pl].alive) {
+		return false;
+	}
 	int counter = 0;
 	int sizee = sizeof(inmovable) / sizeof(inmovable[0]);
 	for (int i = 0; i < sizee; i++)
@@ -204,6 +224,30 @@ bool player_move_checker(int a, int b, int pl) {
 		}
 	}
 	return (counter == 0);
+}
+void drawControls(int i)
+{
+	if (i == 0) {
+		drawStats(0);
+	}
+	else if (i == 1) {
+		drawStats(1);
+	}
+	else if (i == 2) {
+		cout << "'wasd' to move.'p' to check player's position.'x' to quit.";
+
+	}
+	else if (i == 3) {
+		cout << "'z' to save and load data.'o' to open options.";
+
+	}
+	else if (i == 4) {
+		cout << "'u' to open Player 0's inventory.'i' to open Player 1's inventory.";
+	}
+	else if (i == 5) {
+		cout << "'l' to open item's data.'c' to draw chars.";
+	}
+
 }
 void drawMap(int pl)
 {
@@ -231,7 +275,7 @@ void drawMap(int pl)
 					}
 
 
-					cout << (char)206;
+					cout << (char)203;
 					//cout << "@";
 					rend_pl = true;
 					plc = 2;
@@ -260,6 +304,7 @@ void drawMap(int pl)
 					cout << (char)153;
 
 				}
+				
 
 				else if (Map[x][y] == '~') {
 					SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY | BACKGROUND_RED | BACKGROUND_INTENSITY);
@@ -293,7 +338,7 @@ void drawMap(int pl)
 				}
 				else if (Map[x][y] == '#') {
 					SetConsoleTextAttribute(hConsole, BACKGROUND_INTENSITY);
-					cout << Map[x][y];
+					cout << (char)177;
 				}
 				else if (Map[x][y] == 'T') {
 					//SetConsoleTextAttribute(hConsole, FOREGROUND_RED|FOREGROUND_GREEN);
@@ -310,56 +355,35 @@ void drawMap(int pl)
 					cout << "o";
 
 				}
+				else if (Map[x][y] == 'd') {
+					SetConsoleTextAttribute(hConsole, BACKGROUND_RED|BACKGROUND_GREEN);
+					cout << (char)170;
+				}
+				else if (Map[x][y] == '0') {
+					cout << ' ';
+				}
 				else
 				{
-					if (Map[x][y] != 0) {
+					
 						cout << Map[x][y];
-					}
+					
 				}
 			}
 
 		}
 		SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED);
+		if (DataOnRight) {
+			cout << "   ";
+			drawControls(x);
+		}
 		
-		if (x == 0) {
-			cout << "   ";
-			drawStats(0);
-		}
-		else if (x == 1) {
-			cout << "   ";
-			drawStats(1);
-		}
-		else if (x == 2) {
-			cout << "   ";
-			cout << "'wasd' to move.'p' to check player's position.'x' to quit.";
-				
-		}
-		else if (x == 3) {
-			cout << "   ";
-			cout << "'z' to save and load data.'o' to open options.";
-				
-		}
-		else if (x == 4) {
-			cout << "   ";
-			cout << "'u' to open Player 0's inventory.'i' to open Player 1's inventory.";
-		}
-		else if (x == 5) {
-			cout << "   ";
-			cout << "'l' to open item's data.";
-		}
-		if (Map[x][0] != 0||x<7) {
 			cout << endl;
-		}
+		
 	}
 }
 
-void drawControls()
-{
-	cout << "'wasd' to move.'p' to check player's position.'x' to quit.\n'z' to save and load data.'o' to open options.\n'u' to open Player 0's inventory.'i' to open Player 1's inventory." << endl;
-}
-void drawOptions() {
-
-	if (PopUpPause) {
+void show_o_x(bool b) {
+	if (b) {
 		SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN | FOREGROUND_INTENSITY);
 		cout << "o";
 	}
@@ -369,9 +393,16 @@ void drawOptions() {
 	}
 	SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_GREEN);
 
-	cout << "- Pause game after pop-up. 'p' to toggle." << endl;
-	SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_GREEN);
+}
+void drawOptions() {
 
+	
+	show_o_x(PopUpPause);
+	cout << "- Pause game after pop-up. 'q' to toggle." << endl;
+	SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_GREEN);
+	show_o_x(DataOnRight);
+	cout << "- Draw Player's Data and controls on right part of the screen. 'w' to toggle." << endl;
+	SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_GREEN);
 	cout << "'o' to exit." << endl;
 }
 void addItem(item it, int pl) {
@@ -532,7 +563,7 @@ void getInventory() {
 void setInventory() {
 
 	int siz = players[0].items.size();
-	cout << "siz0" << siz;
+	cout << "Player 0" << endl;
 
 	inv1_of.close();
 	inv1_of.open(inv1_path.c_str(), ios::in | ios::out);
@@ -540,13 +571,14 @@ void setInventory() {
 	{
 		inv1_of << players[0].items[i].id << '\n';
 		inv1_of << players[0].items[i].number << '\n';
-		cout << "id" << players[0].items[i].id << "num" << players[0].items[i].number;
+		cout << "id" << players[0].items[i].id << "num" << players[0].items[i].number << endl;
 
 	}
 
 
 	siz = players[1].items.size();
-	cout << "siz1" << siz;
+	cout << "Player 1" << endl;
+
 
 	inv2_of.close();
 	inv2_of.open(inv2_path.c_str(), ios::in | ios::out);
@@ -554,10 +586,9 @@ void setInventory() {
 	{
 		inv2_of << players[1].items[i].id << '\n';
 		inv2_of << players[1].items[i].number << '\n';
-		cout << "id" << players[1].items[i].id << "num" << players[1].items[i].number;
+		cout << "id" << players[1].items[i].id << "num" << players[1].items[i].number<<endl;
 
 	}
-
 
 }
 void setPlayerStats() {
@@ -565,17 +596,19 @@ void setPlayerStats() {
 	stats_of.open(stats_path.c_str(), ios::in | ios::out);
 	for (int i = 0; i < 2; i++)
 	{
-		stats_of << players[0].hp << '\n';
-		stats_of << players[0].max_hp << '\n';
-		stats_of << players[0].mana << '\n';
-		stats_of << players[0].max_mana << '\n';
-		stats_of << players[0].coins << '\n';
+		stats_of << players[i].hp << '\n';
+		stats_of << players[i].max_hp << '\n';
+		stats_of << players[i].mana << '\n';
+		stats_of << players[i].max_mana << '\n';
+		stats_of << players[i].coins << '\n';
 	}
 
 
 }
 void getPlayerStats() {
-	int data[20];
+	stats_f.close();
+	stats_f.open(stats_path.c_str(), ios::in | ios::out);
+	int data[30];
 	int value = 0;
 	int nl = 0;
 	while (stats_f >> value) {
@@ -595,7 +628,8 @@ void getPlayerStats() {
 void setSettings() {
 	settings_of.close();
 	settings_of.open(settings_path.c_str(), ios::in | ios::out);
-	settings_of << PopUpPause;
+	settings_of << PopUpPause<<endl;
+	settings_of << DataOnRight << endl;
 	settings_of.flush();
 }
 void getSettings() {
@@ -609,6 +643,7 @@ void getSettings() {
 		conter++;
 	}
 	PopUpPause = settinhstab[0];
+	DataOnRight = settinhstab[1];
 }
 void getMap() {
 	map_f.close();
@@ -697,7 +732,7 @@ int main()
 {
 	srand(time(NULL));
 
-
+	getPlayerStats();
 	getItemsData();
 	getInventory();
 
@@ -722,9 +757,18 @@ int main()
 		}
 	}
 	while (true) {
-		drawMap(0);
-		player_input = _getch();
 
+		drawMap(0);
+		cout << endl;
+
+		if (!DataOnRight) {
+			for (int i = 0; i < 6; i++)
+			{
+				drawControls(i);
+				cout << endl;
+			}
+		}
+		player_input = _getch();
 
 		switch (player_input) {
 		case 'w':
@@ -807,9 +851,14 @@ int main()
 						opt = false;
 						break;
 					}
-					case 'p':
+					case 'q':
 					{
 						PopUpPause = !PopUpPause;
+						break;
+					}
+					case 'w':
+					{
+						DataOnRight = !DataOnRight;
 						break;
 					}
 					default:
@@ -867,12 +916,21 @@ int main()
 
 			break;
 		}
+		case 'c': {
+			drawChars();
 
+			break;
+		}
 
 		}
 		}
-		check_player_position(0);
-		check_player_position(1);
+		for (int i = 0; i < 2; i++)
+		{
+			if (players[i].alive) {
+				check_player_position(i);
+		}
+	}
+		
 
 
 	}
