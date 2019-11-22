@@ -24,10 +24,10 @@ BACKGROUND_INTENSITY
 #include <sstream> 
 #include <algorithm>
 #include <time.h>
+
 using namespace std;
 struct  itemData
 {
-	int id;
 	char icon;
 
 	string name;
@@ -35,11 +35,12 @@ struct  itemData
 	int Special_power;
 	int Special_type;
 	bool stackable;
+	int Special_value;
 };
 //Structs
 struct  item
 {
-	int id;
+	string name;
 	int number;
 };
 struct  player
@@ -61,7 +62,7 @@ struct enemy {
 	string name;
 	char icon;
 	int max_hp = 10;
-	int dmg=1;
+	int dmg = 1;
 	float hp_scal = 0.1f;
 	float dmg_scal = 0.1f;
 
@@ -110,11 +111,19 @@ bool PopUpPause;
 bool DataOnRight;
 bool stupid;
 //
+int check(string name) {
+	for (int i = 0; i < itemsData.size(); i++)
+	{
+		if (itemsData[i].name == name) {
+			return i;
+		}
+	}
+}
 void drawChars() {
 	system("cls");
 	for (int i = 0; i < 257; i++)
 	{
-		cout << i<<" - "<<(char)i << endl;
+		cout << i << " - " << (char)i << endl;
 	}
 	system("pause");
 }
@@ -134,7 +143,7 @@ void drawStats(int pl)
 		cout << "Player " << pl << " : ";
 	}
 	else {
-		cout << "Player " << pl+1 << " : ";
+		cout << "Player " << pl + 1 << " : ";
 
 	}
 	SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY);
@@ -149,19 +158,19 @@ void drawStats(int pl)
 	cout << "Coins:" << players[pl].coins;
 	SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_GREEN);
 	cout << " | ";
-	SetConsoleTextAttribute(hConsole,   FOREGROUND_GREEN | FOREGROUND_INTENSITY);
-	cout << "LVL:" << players[pl].lvl<<" ";
-	SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN );
-	cout << "Xp:" << players[pl].xp<<"/"<<(players[pl].lvl*(10+players[pl].lvl)) << " ";
 	SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN | FOREGROUND_INTENSITY);
-	int xpsum=(int) (((players[pl].xp * 1.0) / (players[pl].lvl*(10 + players[pl].lvl)))*10.0);
+	cout << "LVL:" << players[pl].lvl << " ";
+	SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN);
+	cout << "Xp:" << players[pl].xp << "/" << (players[pl].lvl*(10 + players[pl].lvl)) << " ";
+	SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+	int xpsum = (int)(((players[pl].xp * 1.0) / (players[pl].lvl*(10 + players[pl].lvl)))*10.0);
 	for (int i = 0; i < xpsum; i++)
 	{
 		cout << (char)219;
 	}
 	SetConsoleTextAttribute(hConsole, FOREGROUND_INTENSITY);
 
-	for (int i = 0; i < 10-xpsum; i++)
+	for (int i = 0; i < 10 - xpsum; i++)
 	{
 		cout << (char)219;
 	}
@@ -183,8 +192,8 @@ void addXP(int count, int pl) {
 	if (players[pl].xp >= nextlvl) {
 
 		players[pl].lvl++;
-		
-		cout << "You advanced to level " << players[pl].lvl << "!"<< endl;
+
+		cout << "You advanced to level " << players[pl].lvl << "!" << endl;
 
 		players[pl].xp -= nextlvl;
 	}
@@ -201,7 +210,7 @@ void waiter() {
 
 	}
 }
-void Combat(int pl, string type,int lvl) {
+void Combat(int pl, string type, int lvl) {
 	int k;
 	for (k = 0; k < Enemies.size(); k++)
 	{
@@ -227,7 +236,7 @@ void Combat(int pl, string type,int lvl) {
 		cout << " | ";
 		SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN);
 		cout << "Attack:" << players[pl].attack << endl;
-		
+
 		SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_GREEN);
 
 		if (type == "Orc") {
@@ -293,28 +302,28 @@ void Combat(int pl, string type,int lvl) {
 			return;
 		}
 		if (enemy_hp <= 0) {
-		
-				cout << endl;
-				cout << "You killed " << currEnemy.name<<"!";
-				cout << endl;
 
-				if (lvl * 5 == 1) {
-					cout << "You collected " << lvl * 5 << " coin!";
-				}
-				else {
-					cout << "You collected " << lvl * 5 << " coins!";
+			cout << endl;
+			cout << "You killed " << currEnemy.name << "!";
+			cout << endl;
 
-				}
-				cout << endl;
+			if (lvl * 5 == 1) {
+				cout << "You collected " << lvl * 5 << " coin!";
+			}
+			else {
+				cout << "You collected " << lvl * 5 << " coins!";
 
-					cout << "You gained " << lvl * 5 << " xp!";
-					cout << endl;
+			}
+			cout << endl;
 
-					players[pl].coins += lvl * 5;
-					addXP(lvl * 5, pl);
-					Map[players[pl].player_x][players[pl].player_y] = '_';
+			cout << "You gained " << lvl * 5 << " xp!";
+			cout << endl;
 
-				waiter();
+			players[pl].coins += lvl * 5;
+			addXP(lvl * 5, pl);
+			Map[players[pl].player_x][players[pl].player_y] = '_';
+
+			waiter();
 			return;
 		}
 	}
@@ -329,8 +338,13 @@ void check_player_position(int pl)
 			cout << "Player " << pl << " died!" << endl;
 		}
 		else {
-			cout << "Player " << pl+1 << " died!" << endl;
+			cout << "Player " << pl + 1 << " died!" << endl;
 
+		}
+		int mm = randomize(0, 100);
+		if (mm == 69) {
+			cout << "Take the L, Loser!" << endl;
+			cout << "pulls both arms outwards in front of my chest and pumps them behind my back, repeats this motion in a smaller range of motion down to my hips two times once more all while sliding my legs in a faux walking motion, claps my hands together in front of me while both my knees knock together, pumps my arms downward, pronating my wrists and abducting my fingers outward while crossing my legs back and forth, repeats this motion again two times while keeping my shoulders low and hunching over, does finger gun with right hand with left hand bent on my hip while looking directly forward and putting my left leg forward then crossing my arms and leaning back a little while bending my knees at an angle" << endl;
 		}
 		waiter();
 
@@ -391,10 +405,10 @@ void check_player_position(int pl)
 	case 'R':
 	{
 		int lvl = randomize(1, 5);
-		Combat(pl, "Orc",lvl);
+		Combat(pl, "Orc", lvl);
 		break;
 	}
-	
+
 	}
 }
 bool player_move_checker(int a, int b, int pl) {
@@ -496,7 +510,7 @@ void drawMap(int pl)
 					cout << (char)153;
 
 				}
-				
+
 
 				else if (Map[x][y] == '~') {
 					SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY | BACKGROUND_RED | BACKGROUND_INTENSITY);
@@ -548,7 +562,7 @@ void drawMap(int pl)
 
 				}
 				else if (Map[x][y] == 'd') {
-					SetConsoleTextAttribute(hConsole, BACKGROUND_RED|BACKGROUND_GREEN);
+					SetConsoleTextAttribute(hConsole, BACKGROUND_RED | BACKGROUND_GREEN);
 					cout << (char)170;
 				}
 				else if (Map[x][y] == '0') {
@@ -556,9 +570,9 @@ void drawMap(int pl)
 				}
 				else
 				{
-					
-						cout << Map[x][y];
-					
+
+					cout << Map[x][y];
+
 				}
 			}
 
@@ -568,12 +582,11 @@ void drawMap(int pl)
 			cout << "   ";
 			drawControls(x);
 		}
-		
-			cout << endl;
-		
+
+		cout << endl;
+
 	}
 }
-
 void show_o_x(bool b) {
 	if (b) {
 		SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN | FOREGROUND_INTENSITY);
@@ -588,7 +601,7 @@ void show_o_x(bool b) {
 }
 void drawOptions() {
 
-	
+
 	show_o_x(PopUpPause);
 	cout << "- Pause game after pop-up. 'q' to toggle." << endl;
 	SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_GREEN);
@@ -598,14 +611,15 @@ void drawOptions() {
 	show_o_x(stupid);
 	cout << "- I'm fucking stupid. 'e' to toggle." << endl;
 	SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_GREEN);
-	
+
 	cout << "'o' to exit." << endl;
 }
 void addItem(item it, int pl) {
-	if (itemsData[it.id].stackable) {
+	int idd = check(it.name);
+	if (itemsData[idd].stackable) {
 		for (int i = 0; i < players[pl].items.size(); i++)
 		{
-			if (players[pl].items[i].id == it.id) {
+			if (players[pl].items[i].name == it.name) {
 				players[pl].items[i].number += it.number;
 				return;
 			}
@@ -613,9 +627,9 @@ void addItem(item it, int pl) {
 
 
 	}
-	cout << "adding unstackable. id:"<<it.id;
+	cout << "adding unstackable. name:" << it.name;
 	players[pl].items.push_back(it);
-	cout << "added id" <<players[pl].items[players[pl].items.size()-1].id;
+	cout << "added name" << players[pl].items[players[pl].items.size() - 1].name;
 
 
 }
@@ -640,7 +654,7 @@ void getEnemiesData() {
 			break;
 		}
 		case 1: {
-			
+
 
 
 			ne.icon = inp[0];
@@ -652,7 +666,7 @@ void getEnemiesData() {
 
 
 			geek >> ne.max_hp;
-		
+
 
 			break;
 		}
@@ -677,6 +691,11 @@ void getEnemiesData() {
 
 
 			geek >> ne.dmg_scal;
+			break;
+		}
+		case 6: {
+
+
 			onecoun = -1;
 			tet.push_back(ne);
 			break;
@@ -705,10 +724,7 @@ void getItemsData() {
 		switch (onecoun)
 		{
 		case 0: {
-			stringstream geek(inp);
-
-
-			geek >> ne.id;
+			ne.name = inp;
 
 			break;
 		}
@@ -751,6 +767,19 @@ void getItemsData() {
 			int nn;
 			geek >> nn;
 			ne.stackable = nn;
+
+			break;
+		}
+		case 7: {
+			stringstream geek(inp);
+
+
+			geek >> ne.Special_value;
+
+			break;
+		}
+		case 8: {
+
 			tet.push_back(ne);
 			onecoun = -1;
 			break;
@@ -771,7 +800,6 @@ void drawItemsData() {
 	for (int i = 0; i < itemsData.size(); i++)
 	{
 		cout << itemsData[i].icon;
-		cout << " ID:" << itemsData[i].id;
 		cout << " Name:" << itemsData[i].name;
 		cout << " value:" << itemsData[i].value;
 		cout << " Special Power:" << itemsData[i].Special_power;
@@ -785,46 +813,77 @@ void drawItemsData() {
 	_getch();
 }
 void getInventory() {
+
+	inv1_f.close();
+	inv1_f.open(inv1_path.c_str(), ios::in | ios::out);
+
+	string inp = "";
+	int cont = 0;
+	vector<item> tet;
+	item ne;
+	while (getline(inv1_f, inp))
 	{
-		inv1_f.close();
-		inv1_f.open(inv1_path.c_str(), ios::in | ios::out);
+		switch (cont)
+		{
+		case 0: {
+			ne.name = inp;
 
-		int it = 0;
-		bool ided = false;
-		vector<item> tet;
-		item ne;
-		while (inv1_f >> it) {
-			if (ided) {
-				ne.number = it;
-				tet.push_back(ne);
-				ided = false;
-			}
-			else {
-				ne.id = it;
-				ided = true;
-
-			}
+			break;
 		}
-		players[0].items = tet;
-		it = 0;
-		ided = false;
-		inv2_f.close();
-		inv2_f.open(inv2_path.c_str(), ios::in | ios::out);
-		tet.clear();
-		while (inv2_f >> it) {
-			if (ided) {
-				ne.number = it;
-				tet.push_back(ne);
-				ided = false;
-			}
-			else {
-				ne.id = it;
-				ided = true;
-
-			}
+		case 1: {
+			stringstream geek(inp);
+			geek >> ne.number;
+			break;
 		}
-		players[1].items = tet;
+		case 2: {
+			cont = -1;
+			tet.push_back(ne);
+			break;
+		}
+
+		default:
+			break;
+		}
+		cont++;
 	}
+	players[0].items = tet;
+	inv2_f.close();
+	inv2_f.open(inv2_path.c_str(), ios::in | ios::out);
+	tet.clear();
+	inp = "";
+	cont = 0;
+
+
+	while (getline(inv2_f, inp))
+	{
+
+		switch (cont)
+		{
+		case 0: {
+			ne.name = inp;
+
+			break;
+		}
+		case 1: {
+			stringstream geek(inp);
+			geek >> ne.number;
+			break;
+		}
+		case 2: {
+			cont = -1;
+			tet.push_back(ne);
+			break;
+		}
+
+		default:
+			break;
+		}
+		cont++;
+	}
+	players[1].items = tet;
+
+
+
 }
 void setInventory() {
 
@@ -835,9 +894,11 @@ void setInventory() {
 	inv1_of.open(inv1_path.c_str(), ios::in | ios::out);
 	for (int i = 0; i < siz; i++)
 	{
-		inv1_of << players[0].items[i].id << '\n';
+		inv1_of << players[0].items[i].name << '\n';
 		inv1_of << players[0].items[i].number << '\n';
-		cout << "id" << players[0].items[i].id << "num" << players[0].items[i].number << endl;
+		inv1_of << "------------------" << '\n';
+
+		cout << "name" << players[0].items[i].name << "num" << players[0].items[i].number << endl;
 
 	}
 
@@ -850,9 +911,9 @@ void setInventory() {
 	inv2_of.open(inv2_path.c_str(), ios::in | ios::out);
 	for (int i = 0; i < siz; i++)
 	{
-		inv2_of << players[1].items[i].id << '\n';
+		inv2_of << players[1].items[i].name << '\n';
 		inv2_of << players[1].items[i].number << '\n';
-		cout << "id" << players[1].items[i].id << "num" << players[1].items[i].number<<endl;
+		cout << "name" << players[1].items[i].name << "num" << players[1].items[i].number << endl;
 
 	}
 
@@ -879,11 +940,13 @@ void setPlayerStats() {
 void getPlayerStats() {
 	stats_f.close();
 	stats_f.open(stats_path.c_str(), ios::in | ios::out);
-	int data[30];
+	int data[35];
 	int value = 0;
 	int nl = 0;
 	while (stats_f >> value) {
+
 		data[nl] = value;
+
 		nl++;
 	}
 
@@ -905,7 +968,7 @@ void getPlayerStats() {
 void setSettings() {
 	settings_of.close();
 	settings_of.open(settings_path.c_str(), ios::in | ios::out);
-	settings_of << PopUpPause<<endl;
+	settings_of << PopUpPause << endl;
 	settings_of << DataOnRight << endl;
 	settings_of << stupid << endl;
 
@@ -947,77 +1010,126 @@ void getMap() {
 
 	}
 }
-void drawInventory(int pl) {
+void drawItemUse(int pl, int sel) {
 	system("cls");
-
-	if (!stupid) {
-		cout << "Player " << pl << "'s inventory" << endl;
+	itemData iD = itemsData[check(players[pl].items[sel].name)];
+	cout << "Position:" << sel << ". ";
+	if (iD.stackable) {
+		cout << players[pl].items[sel].number << "x ";
 	}
-	else {
-		cout << "Player " << pl+1<< "'s inventory" << endl;
-
-	}
-	int n = players[pl].items.size();
-	for (int i = 0; i < n; i++)
+	cout << iD.icon << " " << iD.name << ". Value: " << iD.value << ". ";
+	switch (iD.Special_type)
 	{
-		itemData iD = itemsData[players[pl].items[i].id];
-		if (iD.stackable) {
-			cout << players[pl].items[i].number << "x ";
-		}
-		cout << iD.icon << " " << iD.name << ". Value: " << iD.value;
-
-
-
-		cout << endl;
-	}
-	if (!stupid) {
-		cout << "'u' to open Player 0's inventory.'i' to open Player 1's inventory.'r' to add rock to Player " << pl << ".'x' to exit this menu" << endl;
-	}
-	else {
-		cout << "'u' to open Player 1's inventory.'i' to open Player 2's inventory.'r' to add rock to Player " << pl << ".'x' to exit this menu" << endl;
-
-	}
-
-
-	inv_input = _getch();
-
-
-	switch (inv_input) {
-	case 'u': {
-		drawInventory(0);
-
+	case 0:
+	{
 		break;
 	}
-	case 'i': {
-		drawInventory(1);
-
+	case 1:
+	{
+		cout << "Melee damage: " << iD.Special_power;
 		break;
 	}
-	case 'r': {
-		item it;
-		it.id = 0;
-		it.number = 1;
-		addItem(it, pl);
-		drawInventory(pl);
-
-
+	case 2:
+	{
+		cout << "Ranged damage: " << iD.Special_power << ". (On start od combat +" << iD.Special_value << " turns)";
 		break;
 	}
-	case 't': {
-		item it;
-		it.id = 1;
-		it.number = 1;
-		addItem(it, pl);
-		drawInventory(pl);
-
-
+	case 3:
+	{
+		cout << "Magic damage: " << iD.Special_power << ". (Armor penetration. Enemy has -" << iD.Special_value << " armor)";
 		break;
-	}
-	case 'x': {
-		return;
 	}
 	default:
-		return;
+		break;
+	}
+	cout << endl;
+	system("pause");
+}
+void drawInventory(int pl) {
+	while (true) {
+		system("cls");
+
+		if (!stupid) {
+			cout << "Player " << pl << "'s inventory" << endl;
+		}
+		else {
+			cout << "Player " << pl + 1 << "'s inventory" << endl;
+
+		}
+		int n = players[pl].items.size();
+		for (int i = 0; i < n; i++)
+		{
+			itemData iD = itemsData[check(players[pl].items[i].name)];
+			cout << i << ": ";
+			if (iD.stackable) {
+				cout << players[pl].items[i].number << "x ";
+			}
+			cout << iD.icon << " " << iD.name << ". Value: " << iD.value;
+
+
+
+			cout << endl;
+		}
+		if (!stupid) {
+			cout << "'u' to open Player 0's inventory.'i' to open Player 1's inventory." << pl;
+		}
+		else {
+			cout << "'u' to open Player 1's inventory.'i' to open Player 2's inventory." << pl;
+
+		}
+		cout << ".'x' to exit this menu.'o' to use item" << endl;
+
+
+		inv_input = _getch();
+
+
+		switch (inv_input) {
+		case 'u': {
+			drawInventory(0);
+
+			break;
+		}
+		case 'i': {
+			drawInventory(1);
+
+			break;
+		}
+		case 'r': {
+			item it;
+			it.name = "Rock";
+			it.number = 1;
+			addItem(it, pl);
+			drawInventory(pl);
+
+
+			break;
+		}
+		case 't': {
+			item it;
+			it.name = "Bow";
+			it.number = 1;
+			addItem(it, pl);
+			drawInventory(pl);
+
+
+			break;
+		}
+		case 'o': {
+			cout << "Input Position of item. (first number)[if you input wrong character here it will break and to fix you need game]: "<<endl;
+			int b = 0;
+			cin >> b;
+			if (b < players[pl].items.size()) {
+				drawItemUse(pl, check(players[pl].items[b].name));
+			}
+			cin;
+			break;
+		}
+		case 'x': {
+			return;
+		}
+		default:
+			return;
+		}
 	}
 }
 
@@ -1102,9 +1214,9 @@ int main()
 			}
 			else {
 				cout << "Player " << 1 << ": x:" << players[0].player_x << "|y:" << players[0].player_y << endl;
-				cout << "Player " <<2 << ": x:" << players[1].player_x << "|y:" << players[1].player_y << endl;
+				cout << "Player " << 2 << ": x:" << players[1].player_x << "|y:" << players[1].player_y << endl;
 			}
-			
+
 
 			waiter();
 			break;
@@ -1157,7 +1269,7 @@ int main()
 						PopUpPause = !PopUpPause;
 						break;
 					}
-					
+
 					case 'w':
 					{
 						DataOnRight = !DataOnRight;
@@ -1231,7 +1343,7 @@ int main()
 			system("cls");
 			for (int i = 0; i < Enemies.size(); i++)
 			{
-				cout << Enemies[i].name<<endl;
+				cout << Enemies[i].name << endl;
 				cout << Enemies[i].icon << endl;
 				cout << Enemies[i].max_hp << endl;
 				cout << Enemies[i].dmg << endl;
@@ -1249,9 +1361,10 @@ int main()
 		{
 			if (players[i].alive) {
 				check_player_position(i);
+			}
 		}
-	}
-		
+
+
 
 
 	}

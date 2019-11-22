@@ -1,0 +1,16 @@
+- If some text begins with - it CAN'T be in final file but this is just blueprint 
+ID: 0
+Icon: o
+Name: Rock
+Value: 2
+Special_power: 0
+Special_type: 0
+Stackable: 1 
+Special_value: 0
+Line: ---------------!!!!!!
+-(1-true 0-false)
+-Special_type types:
+- 0 - nothing.
+- 1 - Melee.
+- 2 - Ranged. (More turns on start. Determined 'Special_value')
+- 3 - Magic. (Armor penetration)

@@ -1,0 +1,7 @@
+Name: Orc
+Icon: O
+Start HP: 10
+Start Dmg: 2
+HP multiplier: 1 (each lvl adds this to `Start HP`)
+Dmg multiplier: 0.2 (each lvl adds this to `Start Dmg`)
+Line: ------------------------------------------------------
