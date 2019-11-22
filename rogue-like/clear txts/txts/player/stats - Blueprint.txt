@@ -1,0 +1,19 @@
+Player 0's HP: 025
+Player 0's Max hp: 25
+Player 0's Mana: 8
+Player 0's Max mana: 8
+Player 0's coins: 0
+Player 0's x position: 3
+Player 0's y position: 2
+Player 0's lvl: 1
+Player 0's xp: 5
+Player 1's HP: 21
+Player 1's Max hp: 25
+Player 1's Mana: 8
+Player 1's Max mana: 8
+Player 1's coins: 55
+Player 1's x position: 4
+Player 1's y position: 13
+Player 1's lvl: 3
+Player 1's xp: 24
+
